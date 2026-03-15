@@ -18,7 +18,7 @@ HISTORY_DIR="$HOME/.voice-history"
         kill -INT $REC_PID
         wait $REC_PID 2>/dev/null
         TEXT=$(/opt/homebrew/bin/whisper-cli -m /opt/homebrew/share/whisper-cpp/ggml-base.en.bin \
-            -f /tmp/recording.wav --no-timestamps -nt | xargs)
+            -f /tmp/recording.wav --no-timestamps -nt | tr -s '[:space:]' ' ' | sed 's/^ //;s/ $//')
         if [ -z "$TEXT" ]; then
             continue
         fi
