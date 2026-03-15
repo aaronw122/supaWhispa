@@ -15,7 +15,8 @@ HISTORY_DIR="$HOME/.voice-history"
         /opt/homebrew/bin/rec /tmp/recording.wav rate 16k channels 1 &
         REC_PID=$!
     elif [ "$event" = "UP" ]; then
-        kill $REC_PID
+        kill -INT $REC_PID
+        wait $REC_PID 2>/dev/null
         TEXT=$(/opt/homebrew/bin/whisper-cli -m /opt/homebrew/share/whisper-cpp/ggml-base.en.bin \
             -f /tmp/recording.wav --no-timestamps -nt | xargs)
         if [ -z "$TEXT" ]; then
