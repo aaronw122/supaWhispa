@@ -6,9 +6,17 @@ import Cocoa
 let FN_FLAG: UInt64 = 0x800000
 
 var fnIsDown = false
+var eventTap: CFMachPort?
 
 func callback(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent, refcon: UnsafeMutableRawPointer?) ->
     Unmanaged<CGEvent>? {
+        if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+            if let tap = eventTap {
+                CGEvent.tapEnable(tap: tap, enable: true)
+            }
+            return nil
+        }
+
         if type == .flagsChanged {
             let flags = event.flags.rawValue
             let fnNow = (flags & FN_FLAG) != 0
@@ -23,7 +31,7 @@ func callback(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent, refcon:
                 fnIsDown = false
             }
         }
-        return Unmanaged.passRetained(event)
+        return Unmanaged.passUnretained(event)
     }
 
 let mask = (1 << CGEventType.flagsChanged.rawValue)
@@ -40,6 +48,7 @@ guard let tap = CGEvent.tapCreate(
     exit(1)
 }
 
+eventTap = tap
 let runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
 CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
 CGEvent.tapEnable(tap: tap, enable: true)
